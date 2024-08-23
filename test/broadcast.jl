@@ -175,6 +175,10 @@ end
     x = 1.0:1.0:64
     A .= x.^2 .+ x'
     @test parent(A) ≈ x.^2 .+ x'
+
+    A .= 1.0
+    # all bugs out so we just directly mapreduce
+    @test mapreduce(==(1.0), *, A)
 end
 
 # @testset "Competing Wrappers" begin
