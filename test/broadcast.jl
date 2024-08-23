@@ -1,5 +1,5 @@
 using DimensionalData, Test
-
+using JLArrays
 using DimensionalData: NoLookup
 
 # Tests taken from NamedDims. Thanks @oxinabox
@@ -124,9 +124,9 @@ end
     @test dims(z .= ab .+ ba') == dims(ab .+ ba')
     @test z == (ab.data .+ ba.data')
 
-    @test dims(z .= ab .+ a_) == 
+    @test dims(z .= ab .+ a_) ==
         (X(NoLookup(Base.OneTo(2))), Y(NoLookup(Base.OneTo(2))))
-    @test dims(a_ .= ba' .+ ab) == 
+    @test dims(a_ .= ba' .+ ab) ==
         (X(NoLookup(Base.OneTo(2))), Y(NoLookup(Base.OneTo(2))))
 end
 
@@ -168,12 +168,21 @@ end
     @test A[DimSelectors(sub)] == C[DimSelectors(sub)]
 end
 
+@testset "GPUArray broadcast" begin
+    arr = JLArray(rand(64, 64))
+    A = DimArray(arr, (X(1.0:1.0:64), Y(-32.0:1.0:31)))
+    @test arr.^2 ≈ parent(A.^2)
+    x = 1.0:1.0:64
+    A .= x.^2 .+ x'
+    @test parent(A) ≈ x.^2 .+ x'
+end
+
 # @testset "Competing Wrappers" begin
 #     da = DimArray(ones(4), X)
 #     ta = TrackedArray(5 * ones(4))
 #     dt = DimArray(TrackedArray(5 * ones(4)), X)
 #     arrays = (da, ta, dt)
-#     @testset "$a .- $b" 
+#     @testset "$a .- $b"
 #     for (a, b) in Iterators.product(arrays, arrays)
 #         a === b && continue
 #         @test typeof(da .- ta) <: DimArray
